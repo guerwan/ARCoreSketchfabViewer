@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">ARCoreSketchfabViewer</string>
+    <string name="app_name">ARCore Sketchfab Viewer</string>
+    <string name="sketchfab_login">Sketchfab Login</string>
 </resources>
