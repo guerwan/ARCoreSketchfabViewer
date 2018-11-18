@@ -10,12 +10,18 @@ import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import io.immersiv.arcoresketchfabviewer.models.DownloadResultModel
+import io.immersiv.arcoresketchfabviewer.models.SearchResultModel
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class ARActivity : AppCompatActivity() {
 
     private var arFragment: ArFragment? = null
     private var duckRenderable: ModelRenderable? = null
+    //TODO remove
     private val GLTF_ASSET = "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +68,31 @@ class ARActivity : AppCompatActivity() {
             andy.setParent(anchorNode)
             andy.renderable = duckRenderable
             andy.select()
+        }
+
+        //SketchfabService.search(this, "android", SearchCallback())
+    }
+
+    inner class SearchCallback : Callback<SearchResultModel> {
+        override fun onFailure(call: Call<SearchResultModel>, t: Throwable) {
+            Toast.makeText(this@ARActivity, "failure", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onResponse(call: Call<SearchResultModel>, response: Response<SearchResultModel>) {
+            val results = response.body()?.results
+            if(results?.isNotEmpty() == true) {
+                SketchfabService.download(this@ARActivity, results[0].uid, DownloadCallback())
+            }
+        }
+    }
+
+    inner class DownloadCallback : Callback<DownloadResultModel> {
+        override fun onFailure(call: Call<DownloadResultModel>, t: Throwable) {
+            Toast.makeText(this@ARActivity, "failure", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onResponse(call: Call<DownloadResultModel>, response: Response<DownloadResultModel>) {
+            Toast.makeText(this@ARActivity, "success", Toast.LENGTH_SHORT).show()
         }
     }
 }
