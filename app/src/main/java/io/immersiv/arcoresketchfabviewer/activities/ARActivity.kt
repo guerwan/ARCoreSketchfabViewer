@@ -1,4 +1,4 @@
-package io.immersiv.arcoresketchfabviewer
+package io.immersiv.arcoresketchfabviewer.activities
 
 import android.content.Context
 import android.content.Intent
@@ -12,6 +12,8 @@ import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import io.immersiv.arcoresketchfabviewer.R
+import io.immersiv.arcoresketchfabviewer.SketchfabService
 import io.immersiv.arcoresketchfabviewer.models.DownloadResultModel
 import io.immersiv.arcoresketchfabviewer.models.SearchResultModel
 import retrofit2.Call
@@ -82,7 +84,11 @@ class ARActivity : AppCompatActivity() {
         override fun onResponse(call: Call<SearchResultModel>, response: Response<SearchResultModel>) {
             val results = response.body()?.results
             if (results?.isNotEmpty() == true) {
-                SketchfabService.download(this@ARActivity, results[0].uid, DownloadCallback())
+                SketchfabService.download(
+                    this@ARActivity,
+                    results[0].uid,
+                    DownloadCallback()
+                )
             }
         }
     }

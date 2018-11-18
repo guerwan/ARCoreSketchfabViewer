@@ -1,4 +1,4 @@
-package io.immersiv.arcoresketchfabviewer
+package io.immersiv.arcoresketchfabviewer.activities
 
 import android.os.Bundle
 import android.view.View
@@ -6,12 +6,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.immersiv.arcoresketchfabviewer.ModelAdapter
+import io.immersiv.arcoresketchfabviewer.R
+import io.immersiv.arcoresketchfabviewer.SketchfabService
 import io.immersiv.arcoresketchfabviewer.models.DownloadResultModel
 import io.immersiv.arcoresketchfabviewer.models.SearchResultModel
 import io.immersiv.arcoresketchfabviewer.models.SketchfabModel
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.loader.*
-import okhttp3.internal.http.HttpMethod
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -31,6 +33,8 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
         contentLayout.layoutManager = LinearLayoutManager(this@SearchActivity)
 
         searchView.setOnQueryTextListener(OnQueryTextListener())
+
+        refreshData(null)
     }
 
     inner class OnQueryTextListener : SearchView.OnQueryTextListener {
@@ -45,8 +49,13 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
     }
 
     private fun refreshData(query: String?) {
+        contentLayout.scrollToPosition(0)
         if (query != null) {
-            SketchfabService.search(this, query, SearchCallback())
+            SketchfabService.search(this, query, false, SearchCallback())
+            contentLayout.visibility = View.GONE
+            progressLayout.visibility = View.VISIBLE
+        } else {
+            SketchfabService.search(this, null, true, SearchCallback())
             contentLayout.visibility = View.GONE
             progressLayout.visibility = View.VISIBLE
         }
@@ -54,7 +63,11 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
 
     override fun onItemClicked(position: Int, model: SketchfabModel?) {
         if (model != null) {
-            SketchfabService.download(this@SearchActivity, model.uid, DownloadCallback())
+            SketchfabService.download(
+                this@SearchActivity,
+                model.uid,
+                DownloadCallback()
+            )
             contentLayout.visibility = View.GONE
             progressLayout.visibility = View.VISIBLE
         }
@@ -86,7 +99,12 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
         override fun onResponse(call: Call<DownloadResultModel>, response: Response<DownloadResultModel>) {
             val url = response.body()?.gltf?.url
             if (url != null) {
-                startActivity(ARActivity.newIntent(this@SearchActivity, url))
+                startActivity(
+                    ARActivity.newIntent(
+                        this@SearchActivity,
+                        url
+                    )
+                )
             } else {
                 Toast.makeText(this@SearchActivity, "failure", Toast.LENGTH_SHORT).show()
             }

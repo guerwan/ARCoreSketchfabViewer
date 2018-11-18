@@ -8,7 +8,7 @@
     <androidx.appcompat.widget.SearchView
             android:id="@+id/searchView"
             android:layout_width="0dp"
-            app:iconifiedByDefault="false"
+            app:iconifiedByDefault="true"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

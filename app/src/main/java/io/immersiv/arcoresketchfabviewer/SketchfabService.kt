@@ -17,7 +17,8 @@ object SketchfabService {
         fun search(
             @Query("type") models: String,
             @Query("downloadable") downloadable: Boolean,
-            @Query("q") query: String
+            @Query("staffpicked") staffPicked: Boolean,
+            @Query("q") query: String?
         ): Call<SearchResultModel>
 
         @GET("models/{UID}/download")
@@ -26,7 +27,8 @@ object SketchfabService {
 
     fun search(
         context: Context,
-        query: String,
+        query: String?,
+        staffPicked: Boolean = false,
         callback: Callback<SearchResultModel>
     ): Call<SearchResultModel> {
 
@@ -34,7 +36,7 @@ object SketchfabService {
 
         val github = retrofit.create(API::class.java)
 
-        val call = github.search("models", true, query)
+        val call = github.search("models", true, staffPicked, query)
 
         call.enqueue(callback)
 

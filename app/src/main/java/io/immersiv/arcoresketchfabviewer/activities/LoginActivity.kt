@@ -1,4 +1,4 @@
-package io.immersiv.arcoresketchfabviewer
+package io.immersiv.arcoresketchfabviewer.activities
 
 import android.os.Bundle
 import android.view.MenuItem
@@ -6,6 +6,7 @@ import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import io.immersiv.arcoresketchfabviewer.R
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.loader.*
 
