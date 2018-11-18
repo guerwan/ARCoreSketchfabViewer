@@ -23,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
         setTitle(R.string.sketchfab_login)
 
         contentLayout.webViewClient = CustomWebViewClient()
-        contentLayout.loadUrl("https://sketchfab.com")
+        contentLayout.loadUrl("https://sketchfab.com")//TODO
     }
 
     inner class CustomWebViewClient : WebViewClient() {
