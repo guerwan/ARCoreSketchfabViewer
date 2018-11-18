@@ -11,6 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 internal object SketchfabServiceManager {
     private const val TAG = "SketchfabServiceManager"
     private var sRetrofit: Retrofit? = null
+    private const val AUTH_TOKEN = "Authorization: Bearer"
+    private var sToken: String? = null
 
     fun provideRetrofit(context: Context): Retrofit {
         if (sRetrofit == null) {
@@ -20,13 +22,21 @@ internal object SketchfabServiceManager {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
+
+        if(sToken == null) {
+            sToken = PrefsHelper.getAccessToken(context)
+        }
         return sRetrofit as Retrofit
     }
 
-    fun provideOkHttpClient(): OkHttpClient {
+    private fun provideOkHttpClient(): OkHttpClient {
         val interceptor = Interceptor { chain ->
             var request = chain.request()
             val builder = request.newBuilder()
+
+            if (sToken != null) {
+                builder.addHeader(AUTH_TOKEN, sToken)
+            }
 
             request = builder.build()
 
