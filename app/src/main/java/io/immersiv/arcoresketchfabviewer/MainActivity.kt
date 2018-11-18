@@ -11,6 +11,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         login.setOnClickListener { startActivity(Intent(this@MainActivity, LoginActivity::class.java)) }
-        arMode.setOnClickListener { startActivity(Intent(this@MainActivity, ARActivity::class.java)) }
+        arMode.setOnClickListener { startActivity(Intent(this@MainActivity, SearchActivity::class.java)) }
     }
 }

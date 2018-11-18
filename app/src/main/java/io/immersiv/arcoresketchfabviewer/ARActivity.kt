@@ -1,5 +1,7 @@
 package io.immersiv.arcoresketchfabviewer
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
@@ -21,8 +23,6 @@ class ARActivity : AppCompatActivity() {
 
     private var arFragment: ArFragment? = null
     private var duckRenderable: ModelRenderable? = null
-    //TODO remove
-    private val GLTF_ASSET = "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,22 +31,23 @@ class ARActivity : AppCompatActivity() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
 
 
+        val urlAsset = intent.getStringExtra(EXTRA_URL)
         ModelRenderable.builder()
             .setSource(
                 this, RenderableSource.builder().setSource(
                     this,
-                    Uri.parse(GLTF_ASSET),
+                    Uri.parse(urlAsset),
                     RenderableSource.SourceType.GLTF2
                 )
                     .setScale(0.5f)  // Scale the original model to 50%.
                     .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                     .build()
             )
-            .setRegistryId(GLTF_ASSET)
+            .setRegistryId(urlAsset)
             .build()
             .thenAccept { renderable -> duckRenderable = renderable }
             .exceptionally { throwable ->
-                val toast = Toast.makeText(this, "Unable to load renderable $GLTF_ASSET", Toast.LENGTH_LONG)
+                val toast = Toast.makeText(this, "Unable to load renderable $urlAsset", Toast.LENGTH_LONG)
                 toast.setGravity(Gravity.CENTER, 0, 0)
                 toast.show()
                 null
@@ -80,7 +81,7 @@ class ARActivity : AppCompatActivity() {
 
         override fun onResponse(call: Call<SearchResultModel>, response: Response<SearchResultModel>) {
             val results = response.body()?.results
-            if(results?.isNotEmpty() == true) {
+            if (results?.isNotEmpty() == true) {
                 SketchfabService.download(this@ARActivity, results[0].uid, DownloadCallback())
             }
         }
@@ -93,6 +94,15 @@ class ARActivity : AppCompatActivity() {
 
         override fun onResponse(call: Call<DownloadResultModel>, response: Response<DownloadResultModel>) {
             Toast.makeText(this@ARActivity, "success", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    companion object {
+        const val EXTRA_URL = "URL"
+        fun newIntent(context: Context, url: String): Intent {
+            val intent = Intent(context, ARActivity::class.java)
+            intent.putExtra(EXTRA_URL, url)
+            return intent
         }
     }
 }

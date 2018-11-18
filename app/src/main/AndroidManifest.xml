@@ -27,6 +27,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".LoginActivity" />
+        <activity android:name=".SearchActivity" />
         <activity android:name=".ARActivity" />
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
