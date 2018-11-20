@@ -1,5 +1,10 @@
 package io.immersiv.arcoresketchfabviewer.activities
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -17,10 +22,13 @@ import kotlinx.android.synthetic.main.loader.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import android.content.Intent
+import android.os.Environment
+import io.immersiv.arcoresketchfabviewer.Utils
 
 
 class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
-
+    private var fileUri : Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +43,13 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
         searchView.setOnQueryTextListener(OnQueryTextListener())
 
         refreshData(null)
+
+        registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(onDownloadComplete)
     }
 
     inner class OnQueryTextListener : SearchView.OnQueryTextListener {
@@ -89,6 +104,29 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
         }
     }
 
+    private var onDownloadComplete = object : BroadcastReceiver() {
+        override fun onReceive(ctxt: Context, intent: Intent) {
+
+            val fileName = fileUri?.lastPathSegment
+
+            if(fileName != null) {
+                val fileNameWithoutExt = fileName.split(".")[0]
+                Utils.unpackZip(
+                    this@SearchActivity.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).absolutePath,
+                    fileName,
+                    fileNameWithoutExt)
+                startActivity(
+                    ARActivity.newIntent(
+                        this@SearchActivity,
+                        "$fileNameWithoutExt/scene.gltf"
+                    )
+                )
+                contentLayout.visibility = View.VISIBLE
+                progressLayout.visibility = View.GONE
+            }
+        }
+    }
+
     inner class DownloadCallback : Callback<DownloadResultModel> {
         override fun onFailure(call: Call<DownloadResultModel>, t: Throwable) {
             Toast.makeText(this@SearchActivity, "failure", Toast.LENGTH_SHORT).show()
@@ -98,18 +136,22 @@ class SearchActivity : AppCompatActivity(), ModelAdapter.OnItemClickListener {
 
         override fun onResponse(call: Call<DownloadResultModel>, response: Response<DownloadResultModel>) {
             val url = response.body()?.gltf?.url
+
             if (url != null) {
-                startActivity(
-                    ARActivity.newIntent(
-                        this@SearchActivity,
-                        url
-                    )
-                )
+                fileUri = Uri.parse(url)
+                val request = DownloadManager.Request(fileUri)
+                //TODO
+                //request.setVisibleInDownloadsUi(false)
+                //request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                request.setDestinationInExternalFilesDir(this@SearchActivity, Environment.DIRECTORY_DOCUMENTS, fileUri?.lastPathSegment)
+                val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                downloadManager.enqueue(request)
             } else {
                 Toast.makeText(this@SearchActivity, "failure", Toast.LENGTH_SHORT).show()
+                contentLayout.visibility = View.VISIBLE
+                progressLayout.visibility = View.GONE
             }
-            contentLayout.visibility = View.VISIBLE
-            progressLayout.visibility = View.GONE
         }
     }
 }

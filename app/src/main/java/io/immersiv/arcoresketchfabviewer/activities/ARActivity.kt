@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.view.Gravity
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -24,7 +25,7 @@ import retrofit2.Response
 class ARActivity : AppCompatActivity() {
 
     private var arFragment: ArFragment? = null
-    private var duckRenderable: ModelRenderable? = null
+    private var renderable: ModelRenderable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,24 +33,26 @@ class ARActivity : AppCompatActivity() {
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
 
+        val fileName = intent.getStringExtra(EXTRA_FILE_NAME)
+        val path = this@ARActivity.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).absolutePath + "/" + fileName
 
-        val urlAsset = intent.getStringExtra(EXTRA_URL)
         ModelRenderable.builder()
             .setSource(
                 this, RenderableSource.builder().setSource(
                     this,
-                    Uri.parse(urlAsset),
+                    Uri.parse(path),
                     RenderableSource.SourceType.GLTF2
                 )
                     .setScale(0.5f)  // Scale the original model to 50%.
                     .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                     .build()
             )
-            .setRegistryId(urlAsset)
+            .setRegistryId(fileName)
             .build()
-            .thenAccept { renderable -> duckRenderable = renderable }
+            .thenAccept { renderable -> this.renderable = renderable }
             .exceptionally { throwable ->
-                val toast = Toast.makeText(this, "Unable to load renderable $urlAsset", Toast.LENGTH_LONG)
+                throwable.printStackTrace()
+                val toast = Toast.makeText(this, "Unable to load renderable $fileName", Toast.LENGTH_LONG)
                 toast.setGravity(Gravity.CENTER, 0, 0)
                 toast.show()
                 null
@@ -57,7 +60,7 @@ class ARActivity : AppCompatActivity() {
 
 
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
-            if (duckRenderable == null) {
+            if (renderable == null) {
                 return@setOnTapArPlaneListener
             }
 
@@ -69,7 +72,7 @@ class ARActivity : AppCompatActivity() {
             // Create the transformable andy and add it to the anchor.
             val andy = TransformableNode(arFragment?.transformationSystem)
             andy.setParent(anchorNode)
-            andy.renderable = duckRenderable
+            andy.renderable = renderable
             andy.select()
         }
 
@@ -104,10 +107,10 @@ class ARActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_URL = "URL"
-        fun newIntent(context: Context, url: String): Intent {
+        const val EXTRA_FILE_NAME = "NAME"
+        fun newIntent(context: Context, fileName: String): Intent {
             val intent = Intent(context, ARActivity::class.java)
-            intent.putExtra(EXTRA_URL, url)
+            intent.putExtra(EXTRA_FILE_NAME, fileName)
             return intent
         }
     }
