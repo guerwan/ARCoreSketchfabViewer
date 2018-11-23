@@ -67,12 +67,14 @@ class ARActivity : AppCompatActivity() {
             // Create the Anchor.
             val anchor = hitResult.createAnchor()
             val anchorNode = AnchorNode(anchor)
-            anchorNode.setParent(arFragment?.getArSceneView()?.scene)
+            anchorNode.setParent(arFragment?.arSceneView?.scene)
 
             // Create the transformable andy and add it to the anchor.
             val andy = TransformableNode(arFragment?.transformationSystem)
             andy.setParent(anchorNode)
             andy.renderable = renderable
+            andy.scaleController.minScale = 0.125f
+            andy.scaleController.maxScale = 2f
             andy.select()
         }
 
